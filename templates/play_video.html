@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+<head>
+  <title>Playing: {{ video_title }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="video-play-page"> <div class="background-animation"></div> <div class="main-content"> <h2>Now Playing: {{ video_title }}</h2>
+    <video controls autoplay>
+      <source src="{{ video_url }}" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+    <a href="/files/" class="back-link">⬅️ Back to Files</a>
+  </div>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+  <title>Browse Downloads</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="files-page"> <div class="background-animation"></div> <div class="main-content"> <h2>📂 Files in: /{{ current_path }}</h2>
+    <p class="disk-space">💽 Free space: {{ free_mb }} MB</p>
+
+    <div class="file-list-wrapper">
+        <ul class="file-list">
+            {% if parent_path is not none %}
+                <li class="file-list-item back-link-item">
+                    <a href="/files/{{ parent_path }}">⬅️ Go Back</a>
+                </li>
+            {% endif %}
+
+            {% for folder in folders %}
+                <li class="file-list-item folder-item">
+                    <a href="/files/{{ folder.path }}">
+                        <span class="icon">📁</span> {{ folder.name }}
+                    </a>
+                    <form method="POST" action="/files/{{ current_path }}" class="delete-form" onsubmit="return confirm('Delete empty folder {{ folder.name }}?');">
+                        <input type="hidden" name="delete" value="{{ folder.path }}">
+                        <button type="submit" class="delete-button">🗑️</button>
+                    </form>
+                </li>
+            {% endfor %}
+
+            <!-- MODIFIED FILE LOOP -->
+            {% for file in files %}
+                <li class="file-list-item file-item">
+                    <a href="/download/{{ file.path }}" class="file-name-link">
+                        {% if file.type == 'audio' %}
+                            <span class="icon">🎵</span>
+                        {% else %}
+                            <span class="icon">🎬</span>
+                        {% endif %}
+                        {{ file.name }}
+                    </a>
+                    <span class="file-size">({{ file.size }})</span>
+                    <div class="file-actions">
+                        <a href="/play/{{ file.path }}" class="action-button play-button">▶️ Play</a>
+                        <form method="POST" action="/files/{{ current_path }}" class="delete-form" onsubmit="return confirm('Delete file {{ file.name }}?');">
+                            <input type="hidden" name="delete" value="{{ file.path }}">
+                            <button type="submit" class="delete-button">🗑️</button>
+                        </form>
+                    </div>
+                </li>
+            {% endfor %}
+
+            {% if not files and not folders and parent_path is none %}
+                <li class="file-list-item no-content">No files or folders found.</li>
+            {% endif %}
+        </ul>
+    </div>
+    <a href="/" class="bottom-link">🏠 Go to Downloader</a> </div>
+</body>
+</html>
