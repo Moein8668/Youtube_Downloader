@@ -1,0 +1,171 @@
+<!doctype html>
+<html>
+<head>
+  <title>YouTube Downloader</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="main-page">
+  <div class="background-animation"></div>
+
+  <div class="main-content">
+    <h2>YouTube URL Downloader</h2>
+    
+    <form id="main-form">
+      <input name="url" id="url-input" placeholder="Enter YouTube video or playlist URL" size="60" required class="form-input">
+      
+      <button type="button" id="detect-btn">🔍 Detect</button>
+
+      <!-- Container for the AJAX loader -->
+      <div id="loader-container" style="display: none; width: 100%;">
+          <div class="loader"></div>
+      </div>
+      
+      <!-- Message area for AJAX errors and download success messages -->
+      <div id="message-area" style="width: 100%;"></div>
+
+      <!-- Container where detection results will be injected by JavaScript -->
+      <div id="results-container" style="width: 100%;"></div>
+
+    </form>
+    
+    <a href="/files/" class="action-button bottom-link" style="margin-top: 20px;">
+        📂 Open Files Page
+    </a>
+  </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mainForm = document.getElementById('main-form');
+    const detectBtn = document.getElementById('detect-btn');
+    const urlInput = document.getElementById('url-input');
+    const loader = document.getElementById('loader-container');
+    const resultsContainer = document.getElementById('results-container');
+    const messageArea = document.getElementById('message-area');
+
+    // --- 1. Handle Detection ---
+    detectBtn.addEventListener('click', async () => {
+        const url = urlInput.value;
+        if (!url) {
+            showMessage('Please enter a URL first.', 'error');
+            return;
+        }
+
+        resultsContainer.innerHTML = '';
+        messageArea.innerHTML = '';
+        loader.style.display = 'flex';
+        detectBtn.disabled = true;
+
+        try {
+            const response = await fetch('/api/detect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: url }),
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                throw new Error(data.message);
+            }
+
+            resultsContainer.innerHTML = buildResultsHtml(data);
+
+        } catch (error) {
+            showMessage(`❌ ${error.message}`, 'error');
+        } finally {
+            loader.style.display = 'none';
+            detectBtn.disabled = false;
+        }
+    });
+
+    // --- 2. Handle Download ---
+    mainForm.addEventListener('submit', async (event) => {
+        event.preventDefault(); // Prevent traditional form submission
+
+        const url = urlInput.value;
+        const resolutionSelect = document.getElementById('resolution');
+        const playlistSelect = document.getElementById('playlist_selection');
+
+        if (!resolutionSelect) { // If the form is submitted before detection
+            showMessage('Please detect a URL before downloading.', 'error');
+            return;
+        }
+
+        const payload = {
+            url: url,
+            resolution: resolutionSelect.value,
+            playlist_selection: playlistSelect ? playlistSelect.value : ''
+        };
+
+        try {
+            const response = await fetch('/api/download', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+            const data = await response.json();
+            if (data.error) {
+                throw new Error(data.message);
+            }
+            showMessage(data.message, 'success');
+
+        } catch (error) {
+            showMessage(`❌ ${error.message}`, 'error');
+        }
+    });
+
+    // --- 3. Helper Functions ---
+    function showMessage(message, type) {
+        const messageClass = type === 'success' ? 'message success' : 'message error';
+        messageArea.innerHTML = `<p class="${messageClass}">${message}</p>`;
+    }
+
+    function buildResultsHtml(data) {
+        let html = '<div class="detected-info">';
+        html += `<p><strong>Type:</strong> ${data.detected_type}</p>`;
+
+        if (data.thumbnail_url) {
+            html += `<img src="${data.thumbnail_url}" alt="Video Thumbnail" class="video-thumbnail">`;
+        }
+
+        if (data.video_title) {
+            html += `<p><strong>Video Title:</strong> ${data.video_title}</p>`;
+        } else if (data.playlist_items) {
+            const playlistCount = data.playlist_count;
+            html += `<p><strong>Playlist (${playlistCount} videos):</strong></p>`;
+            html += '<ul class="playlist-list">';
+            data.playlist_items.forEach(item => {
+                html += `<li><strong>${item.index}.</strong> ${item.title}</li>`;
+            });
+            html += '</ul>';
+            html += `
+                <div class="playlist-selection-group">
+                    <label for="playlist_selection">Select videos (e.g., 1,5,8-10, or leave blank for all):</label>
+                    <input type="text" name="playlist_selection" id="playlist_selection" class="form-input" value="1-${playlistCount}">
+                </div>
+            `;
+        }
+
+        html += `
+            <div class="resolution-select">
+                <label for="resolution">Choose quality:</label>
+                <select name="resolution" id="resolution" class="form-select">
+                    <option value="audio">Audio Only (MP3)</option>
+                    <option value="1080">1080p</option>
+                    <option value="720" selected>720p</option>
+                    <option value="480">480p</option>
+                    <option value="240">240p</option>
+                    <option value="144">144p</option>
+                </select>
+            </div>
+        `;
+
+        html += `<button type="submit" style="width: 100%;">📥 Download</button>`;
+        html += '</div>';
+        return html;
+    }
+});
+</script>
+
+</body>
+</html>
