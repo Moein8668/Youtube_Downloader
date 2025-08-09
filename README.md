@@ -99,7 +99,7 @@ and follow the menu.
 If you prefer manual updating:
 
 ```bash
-sudo /opt/yt-url-downloader/venv/bin/pip install --upgrade yt-dlp
+sudo pip install --upgrade yt-dlp
 ```
 
 Or use the `yt-url-d` CLI updater.
