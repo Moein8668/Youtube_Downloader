@@ -79,7 +79,7 @@ def update_yt_dlp():
     try:
         # We run the pip command from the virtual environment
         process = subprocess.run(
-            [pip_path, "install", "--upgrade", "yt-dlp"],
+            ["pip" , "install", "--upgrade", "yt-dlp"],
             check=True, capture_output=True, text=True
         )
         print("✅ Update process finished. See details below:")
@@ -133,4 +133,5 @@ def main_menu():
 
 if __name__ == "__main__":
     check_root()
+
     main_menu()
