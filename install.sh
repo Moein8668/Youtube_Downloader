@@ -22,6 +22,10 @@ echo "📦 Installing system dependencies (git, python, pip, venv, ffmpeg, dos2u
 apt-get update
 apt-get install -y git python3 python3-pip python3-venv ffmpeg dos2unix
 
+# New: Install yt-dlp system-wide
+echo "⬇️ Installing yt-dlp system-wide..."
+/usr/bin/python3 -m pip install yt-dlp
+
 # 3. Create User and Directories
 echo "🔧 Setting up user and directories..."
 if ! id "$SERVICE_USER" &>/dev/null; then
@@ -45,7 +49,6 @@ echo "🐍 Creating Python virtual environment and installing packages..."
 python3 -m venv "$INSTALL_DIR/venv"
 source "$INSTALL_DIR/venv/bin/activate"
 pip install -r "$INSTALL_DIR/requirements.txt"
-pip install yt-dlp
 deactivate
 
 # 7. Set Permissions
