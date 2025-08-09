@@ -45,6 +45,7 @@ echo "🐍 Creating Python virtual environment and installing packages..."
 python3 -m venv "$INSTALL_DIR/venv"
 source "$INSTALL_DIR/venv/bin/activate"
 pip install -r "$INSTALL_DIR/requirements.txt"
+pip install yt-dlp
 deactivate
 
 # 7. Set Permissions
